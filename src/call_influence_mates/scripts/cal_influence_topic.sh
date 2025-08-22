@@ -1,0 +1,28 @@
+#!/bin/bash
+
+MODEL_NAME="/path/to/model"
+RESUME="/MATES/huggingface_checkpoint_2/pytorch_model.bin"
+
+
+
+gpu_index=0
+
+
+for slc in {0..7}; do
+    echo "Running slice $slc on GPU $gpu_index of Topic"
+    
+    CUDA_VISIBLE_DEVICES=${gpu_index} \
+    python /path/to/folder/cal_influence.py \
+    --base_directory "/path/to/folder"\
+    --model_name "$MODEL_NAME" \
+    --out_dir "/path/to/folder/influence_${slc}.jsonl" \
+    --slice $slc \
+    --resume "$RESUME" \
+    > /path/to/folder/logs/log_job_topic_${slc}_gpu${gpu_index}_.out 2>&1 &
+    
+    # 增加 GPU 索引并取模以循环使用 8 个 GPU
+    ((gpu_index=(gpu_index+1)%8))
+done
+
+# 等待所有后台任务完成
+wait
